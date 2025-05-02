@@ -1,0 +1,21 @@
+function [contrast, correlation, energy, homogeneity] = process_image(imagePath)
+    % Read the image
+    image = imread(imagePath);
+
+    % Convert to grayscale if needed
+    if size(image, 3) == 3
+        I = rgb2gray(image);
+    else
+        I = image;
+    end
+
+    % Calculate the GLCM
+    glcm = graycomatrix(I, 'Offset', [-1 1], 'NumLevels', 150, 'GrayLimits', [0 150]);
+
+    % Calculate statistics from the GLCM
+    stats = graycoprops(glcm, {'Contrast', 'Correlation', 'Energy', 'Homogeneity'});
+    contrast = stats.Contrast;
+    correlation = stats.Correlation;
+    energy = stats.Energy;
+    homogeneity = stats.Homogeneity;
+end
