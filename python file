@@ -1,0 +1,62 @@
+import matlab.engine
+import os
+import pandas as pd
+import time
+
+def process_images():
+    # Start MATLAB engine
+    eng = matlab.engine.start_matlab()
+
+    # Add the directory containing the MATLAB function to the MATLAB path
+    eng.addpath(r"C:\Users\iliya\Downloads", nargout=0)  # Ensure this is the directory, not the file
+
+    # Path to the images directory
+    images_dir = r"C:\Users\iliya\OneDrive\Desktop\images"
+
+    # List all TIFF image files in the directory
+    image_files = [f for f in os.listdir(images_dir) if f.endswith('.tiff')]
+
+    # Prepare a list to store results
+    data = []
+
+    # Process each image using MATLAB
+    for image_name in image_files:
+        image_path = os.path.join(images_dir, image_name)
+        try:
+            # Call the MATLAB function
+            contrast, correlation, energy, homogeneity = eng.process_image(image_path, nargout=4)
+            data.append({
+                'Image': image_name,
+                'Contrast': contrast,
+                'Correlation': correlation,
+                'Energy': energy,
+                'Homogeneity': homogeneity})
+        except Exception as e:
+            print(f"Error processing {image_name}: {e}")
+
+    # Convert the list to a DataFrame
+    results = pd.DataFrame(data)
+
+    # Display the results
+    print(results)
+
+    # Specify the path to save the Excel file
+    results_file_path = r'C:\Temp\image_features2.xlsx'
+
+    # Ensure the directory exists
+    os.makedirs(r'C:\Temp', exist_ok=True)
+
+    # Save results to an Excel file
+    results.to_excel(results_file_path, index=False, engine='openpyxl')
+    print(f"Excel file should be saved at: {results_file_path}")
+
+    # Stop MATLAB engine
+    eng.quit()
+
+# Run the process every 10 seconds
+try:
+    while True:
+        process_images()
+        time.sleep(10)  # Wait for 10 seconds
+except KeyboardInterrupt:
+    print("Process interrupted by user.")
